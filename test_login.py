@@ -1,6 +1,5 @@
 import streamlit as st
 from ingest.team_setup import render_team_setup
-from ingest.manage_pools import get_students_sheet, get_teams_sheet, add_student, add_coach_to_existing_team
 
 st.title("Login Page")
 
@@ -11,14 +10,5 @@ if not st.user.is_logged_in:
 else:
     st.write(f"Logged in as: {st.user.email}")
     render_team_setup()
-    
-    st.divider()
-    st.header("Test: Add Students")
-    add_student(get_students_sheet())
-    
-    st.divider()
-    st.header("Test: Add Coach")
-    add_coach_to_existing_team(get_teams_sheet())
-    
     if st.button("Log out"):
         st.logout()
