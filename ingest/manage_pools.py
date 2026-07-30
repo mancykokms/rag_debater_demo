@@ -1,15 +1,17 @@
 import streamlit as st
 from ingest.open_sheet import open_spreadsheet
 from ingest.team_setup import find_existing_team_by_domain, get_domain, get_teams_sheet
+from ingest.team_setup import parse_teacher_list, get_teachers_sheet
 
 @st.cache_resource
 def get_students_sheet():
     return open_spreadsheet().worksheet("student_pool")
 
+@st.cache_data(ttl=300)
 def get_team_id():
     domain = get_domain(st.user.email)
-    teams_sheet = get_teams_sheet()
-    return find_existing_team_by_domain(domain, teams_sheet)
+    teachers_sheet = get_teachers_sheet()
+    return find_existing_team_by_domain(domain, teachers_sheet)
 
 def parse_student_list(raw_input):
     students = []
@@ -46,20 +48,29 @@ def add_student(students_sheet):
             except Exception as e:
                 st.error(f"Failed to add students: {e}")
                 
-def add_coach_to_existing_team(teams_sheet):
+def add_coach_to_existing_team(teachers_sheet):
     team_id = get_team_id()
-    row = teams_sheet.find(team_id)
-    teacher_emails = teams_sheet.cell(row.row, 3).value
-    teacher_emails = teacher_emails.split(";")
-    teacher_emails = [e.strip() for e in teacher_emails]
-    new_email = st.text_input("Input new coach's email")
-    if new_email not in teacher_emails:
-        teacher_emails.append(new_email)
-        updated_emails = "; ".join(teacher_emails)
-        teams_sheet.update_cell(row.row, 3, updated_emails)
-    else:
-        st.error("This coach already exists in your team. ")
-        
+    raw_input = st.text_area("Input teachers, one per each line", 
+                            placeholder="Alice Chan; alice@school.edu.hk \nBob Wong; bob@school.edu.hk")
+    if st.button("Parse teachers"):
+        st.session_state.parsed_teachers = parse_teacher_list(raw_input)
+    if st.session_state.get("just_added"): 
+        st.success(f"teachers added successfully!")
+        del st.session_state["just_added"]
+    if "parsed_teachers" in st.session_state:
+        teacher_list = st.session_state.parsed_teachers
+        st.write("The coaches are: ", teacher_list)
+        if st.button("Add coach"):
+            try:
+                for teacher in teacher_list:
+                    teachers_sheet.append_row([team_id, teacher["name"], teacher["email"]])
+                st.session_state.just_added = True
+                del st.session_state["parsed_teachers"]
+                st.rerun()
+            except Exception as e:
+                st.error(f"Failed to add teachers: {e}")
+  
+            
         
     
 
