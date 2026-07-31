@@ -1,26 +1,9 @@
-# import streamlit as st
-# from ingest.open_sheet import open_spreadsheet
 import uuid
-# from ingest.manage_pools import get_team_id
+
 from sentence_transformers import SentenceTransformer
 import streamlit as st
 import chromadb
 
-# @st.cache_resource
-# def get_motions_sheet():
-#     return open_spreadsheet().worksheet("motions")
-
-# def create_motion(motions_sheet):
-#     motion_text = st.text_input("Motion: ", placeholder="Enter the motion of debate")
-#     if st.button("Create motion"):
-#         if motion_text:
-#             motion_id = str(uuid.uuid4().hex[:8])
-#             team_id = get_team_id()
-#             motions_sheet.append_row([team_id, motion_id, motion_text])
-#             st.session_state.current_motion_id = motion_id
-#             st.success(f"Motion {motion_id} created successfully")
-#         else:
-#             st.warning("Motion field cannot be empty!")
             
 def chunk_text(text, chunk_size=400, overlap=50):
     words = text.split()
