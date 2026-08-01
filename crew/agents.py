@@ -14,7 +14,8 @@ def get_llm():
     return llm 
 
 
-def run_debater_crew(student_speech, retrieved_chunks, team_line, speaker_role, stance, mode):
+def run_debater_crew(speech_so_far, retrieved_chunks, team_line, speaker_role, stance, mode):
+    
     llm = get_llm()
     agent = Agent(
         role="Debater",
@@ -23,9 +24,13 @@ def run_debater_crew(student_speech, retrieved_chunks, team_line, speaker_role, 
         llm=llm
     )
     evidence = "\n\n".join(retrieved_chunks)
+    if speech_so_far:
+            round_context = f"Full round so far:\n{speech_so_far}"
+    else:
+        round_context = "This is the opening speech of the round — nothing has been said yet."
     task = Task(
-        description=f"Your team's case line:\n{team_line}\n\nEvidence:\n{evidence}\n\nStudent's speech to respond to:\n{student_speech}",
-        expected_output="A debate speech responding to the opponent",
+        description=f"Your team's case line:\n{team_line}\n\nEvidence:\n{evidence}\n\n{round_context}\n\nGenerate your speech as the next speaker in the round.",
+        expected_output="A debate speech responding to the round so far",
         agent=agent
     )
     crew = Crew(agents=[agent], tasks=[task])

@@ -1,3 +1,5 @@
+from email.mime import text
+
 from openai import OpenAI
 import streamlit as st
 
@@ -61,6 +63,14 @@ MODE_INSTRUCTIONS = {
     ),
 }
 
+ROLE_LABELS = {
+    (1, "affirmative"): "Affirmative 1st Speaker",
+    (1, "negative"): "Negative 1st Speaker",
+    (2, "affirmative"): "Affirmative 2nd Speaker",
+    (2, "negative"): "Negative 2nd Speaker",
+    (3, "affirmative"): "Affirmative 3rd Speaker",
+    (3, "negative"): "Negative 3rd Speaker",
+}
 
 def build_system_prompt(speaker_role, stance, mode):
     role = (speaker_role, stance)
@@ -68,9 +78,48 @@ def build_system_prompt(speaker_role, stance, mode):
     instruction_mode = MODE_INSTRUCTIONS[mode]
     system_prompt = instructions + "\n" + instruction_mode
     return system_prompt
-    
-    
-    
+
+def get_next_speaker(stance, speaker_role):
+    if stance == "affirmative":
+        return "negative", speaker_role
+    else:  # stance == "negative"
+        if speaker_role == 3:
+            return None  # last speech of the round, nothing follows
+        else:
+            return "affirmative", speaker_role + 1  
+
+def format_speech(speaker_role, stance, speech_text):
+    role_label = ROLE_LABELS[(speaker_role, stance)]
+    formatted_speech = f"{role_label}:\n{speech_text}"
+    return formatted_speech
+
+def format_transcript(speeches):
+    formatted_transcript = []
+    for speech in speeches:
+        speaker_role = speech["speaker_role"]
+        stance = speech["stance"]
+        text = speech["text"]
+        formatted_transcript.append(format_speech(speaker_role, stance, text))
+    return "\n\n".join(formatted_transcript)
+
+def generate_team_line(stance, motion_text):
+    response = client.chat.completions.create(
+        model="sensenova-6.7-flash-lite",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a debate coach. Generate a concise, clear, and "
+                    "persuasive team line for the opposite stance. The team line "
+                    "should be 1-2 sentences long and capture the essence of "
+                    "the team's position."
+                ),
+            },
+            {"role": "user", "content": f"Motion: {motion_text}\nStance: {stance}\n\nGenerate the case line."},
+        ],
+    )   
+    return response.choices[0].message.content
+
 def generate_debater_response(student_speech, retrieved_chunks, team_line, speaker_role, stance, mode):
     system_prompt = build_system_prompt(speaker_role, stance, mode)
     evidence = "\n\n".join(retrieved_chunks)
@@ -101,10 +150,11 @@ if __name__ == "__main__":
     )
     chunks = results["documents"][0]  # remember the extra nesting from .query()
     
+    opponent_team_line = generate_team_line(stance="negative", motion_text="The motion is that carbon taxes are necessary.")
     response = generate_debater_response(
         student_speech=student_speech,
         retrieved_chunks=chunks,
-        team_line="We oppose carbon taxes because they disproportionately burden low-income households without guaranteeing meaningful emissions reductions.",
+        team_line=opponent_team_line,
         speaker_role=2,
         stance="negative",
         mode="opponent"
