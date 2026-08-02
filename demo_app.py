@@ -1,15 +1,20 @@
 import streamlit as st
-from crew.mode3_crew import render_mode_3
+from crew.mode2_crew import render_mode_3
 from llm.debater import generate_team_line
+import uuid
+import asyncio
 
 
-st.title("AI Debate Sparring Partner — Demo")
+st.title("AI Debate Sparring Partner — Mode 2 Demo")
 
 motion_text = st.text_input("Enter the motion")
 
 stance = st.selectbox("Pick your stance", options=["affirmative", "negative"])
 speaker_role = st.selectbox("Pick your speaker role", options=[1, 2, 3])
 team_line = st.text_input("Enter your team line")
+
+MOTION_ID = "esports_schools_demo"  # a stable, unique string for THIS motion — not "test_motion"
+TEAM_ID = "demo_team"
 
 if st.button("Start Debate"):
     st.session_state.debate_started = True
@@ -21,4 +26,4 @@ if st.button("Start Debate"):
     }
 
 if st.session_state.get("debate_started"):
-    render_mode_3(stance, speaker_role, st.session_state.team_lines)
+    asyncio.run(render_mode_3(stance, speaker_role, st.session_state.team_lines, TEAM_ID, MOTION_ID))

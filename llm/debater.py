@@ -13,38 +13,44 @@ ROLE_STANCE_INSTRUCTIONS = {
         "You are the 1st Affirmative speaker. Define the motion clearly, "
         "establish your team's burden of proof, and present 2-3 main "
         "contentions with supporting reasoning. This is a constructive "
-        "speech — build your case, do not rebut anything yet."
+        "speech — build your case, do not rebut anything yet. "
+        "Keep your speech in under 500 words. "
     ),
     (1, "negative"): (
         "You are the 1st Negative speaker. Respond to the Affirmative's "
         "definition (challenge it only if genuinely unreasonable), then "
         "present your own team's counter-case with 2-3 main contentions. "
         "Briefly address the Affirmative's framing, but focus mainly on "
-        "building your own constructive case."
+        "building your own constructive case. "
+        "Keep your speech in under 500 words. "
     ),
     (2, "affirmative"): (
         "You are the 2nd Affirmative speaker. Rebut the Negative's "
         "contentions directly and specifically. Then extend your own "
         "team's case with new reasoning or evidence — do not simply "
-        "repeat the 1st speaker's points."
+        "repeat the 1st speaker's points. "
+        "Keep your speech in under 500 words. "
     ),
     (2, "negative"): (
         "You are the 2nd Negative speaker. Rebut the Affirmative's "
         "contentions directly and specifically. Then extend your own "
         "team's case with new reasoning or evidence — do not simply "
-        "repeat the 1st speaker's points."
+        "repeat the 1st speaker's points. "
+        "Keep your speech in under 500 words. "
     ),
     (3, "affirmative"): (
         "You are the 3rd Affirmative speaker. Do NOT introduce any new "
         "arguments or evidence. Focus entirely on rebuttal and weighing — "
         "explain why your side has won the key clashes of the round, "
-        "referencing what was actually said by both teams."
+        "referencing what was actually said by both teams. "
+        "Keep your speech in under 500 words. "
     ),
     (3, "negative"): (
         "You are the 3rd Negative speaker. Do NOT introduce any new "
         "arguments or evidence. Focus entirely on rebuttal and weighing — "
         "explain why your side has won the key clashes of the round, "
-        "referencing what was actually said by both teams."
+        "referencing what was actually said by both teams. "
+        "Keep your speech in under 500 words. "
     ),
 }
 
