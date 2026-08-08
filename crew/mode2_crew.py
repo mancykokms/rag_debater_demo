@@ -25,34 +25,40 @@ def get_mode_and_team_line(stance, student_stance, team_lines):
     return mode, team_line
     
 
-async def generate_before_context(student_stance, student_role, team_lines, team_id, motion_id):
+async def generate_before_context(student_stance, student_role, team_lines):
     student_role = (student_role, student_stance)
     student_idx = FULL_ROUND_SEQUENCE.index(student_role)
     before_student_list = FULL_ROUND_SEQUENCE[:student_idx]
     
     # argument_positions = [(role, stance) for (role, stance) in before_student_list]
-    argument_tasks = {
-        (role, stance): asyncio.create_task(build_arguments_for(role, stance, student_stance, team_lines, need_rebuttals=not (role == 1 and stance == "affirmative"), team_id=team_id, motion_id=motion_id)) for (role, stance) in before_student_list
-    }
+    # argument_tasks = {
+    #     (role, stance): asyncio.create_task(build_arguments_for(role, stance, student_stance, team_lines, need_rebuttals=not (role == 1 and stance == "affirmative"), team_id=team_id, motion_id=motion_id)) for (role, stance) in before_student_list
+    # }
     
+    argument_results = await asyncio.gather(*[
+        build_arguments_for(
+            role, stance, student_stance, team_lines,
+            need_rebuttals=not(role == 1 and stance == "affirmative")
+        ) for (role, stance) in before_student_list
+    ])
+    
+    argument_map = dict(zip(before_student_list, argument_results))
     speeches = []
     transcript_so_far = ""
     
     for (role, stance) in before_student_list:
         
+        argument_response = argument_map[(role, stance)]
         
-        # build arguments in parallel
-        if (role, stance) in argument_tasks:
-            argument_response = await argument_tasks[(role, stance)]
-            
-            
+        # build arguments in parallel   
         if not (role == 1 and stance == "affirmative"):
             if "{rebuttals}" in argument_response["text"]:
-                combined_text = argument_response["text"].replace("{rebuttals}", await build_rebuttals_for(transcript_so_far, role, stance, student_stance, team_lines, team_id, motion_id))
+                combined_text = argument_response["text"].replace("{rebuttals}", await build_rebuttals_for(transcript_so_far, role, stance, student_stance, team_lines))
             else:
                 combined_text = argument_response["text"]
         else:
             combined_text = argument_response["text"]
+        combined_text = combined_text.replace("{rebuttals}", " ").strip()
        
         
         speech = {"stance": stance, "speaker_role": role, "text": combined_text}
@@ -61,7 +67,7 @@ async def generate_before_context(student_stance, student_role, team_lines, team
         yield speech
         
 
-async def generate_after_context(student_stance, student_role, student_speech, team_lines, previous_speeches, team_id, motion_id):
+async def generate_after_context(student_stance, student_role, student_speech, team_lines, previous_speeches):
     student_role = (student_role, student_stance)
     student_idx = FULL_ROUND_SEQUENCE.index(student_role)
     after_student_list = FULL_ROUND_SEQUENCE[student_idx + 1:]
@@ -69,20 +75,30 @@ async def generate_after_context(student_stance, student_role, student_speech, t
     student_entry = [{"stance": student_stance, "speaker_role": student_role[0], "text": student_speech}]
     speeches = previous_speeches + student_entry
     transcript_so_far = format_transcript(speeches)
-    argument_tasks = {
-            (role, stance): asyncio.create_task(build_arguments_for(role, stance, student_stance, team_lines, need_rebuttals=not (role == 1 and stance == "affirmative"), team_id=team_id, motion_id=motion_id)) for (role, stance) in after_student_list
-        }
+    # argument_tasks = {
+    #         (role, stance): asyncio.create_task(build_arguments_for(role, stance, student_stance, team_lines, need_rebuttals=not (role == 1 and stance == "affirmative"), team_id=team_id, motion_id=motion_id)) for (role, stance) in after_student_list
+    #     }
+    
+    argument_results = await asyncio.gather(*[
+        build_arguments_for(role, stance, student_stance, team_lines,
+                            need_rebuttals=not(role == 1 and stance == "affirmative"))
+        for (role, stance) in after_student_list
+    ])
+    argument_map = dict(zip(after_student_list, argument_results))
     
     for (role, stance) in after_student_list:
-        if (role, stance) in argument_tasks:
-            argument_response = await argument_tasks[(role, stance)]
+        # if (role, stance) in argument_tasks:
+        #     argument_response = await argument_tasks[(role, stance)]
+        
+        argument_response = argument_map[(role, stance)]
             
         if not (role == 1 and stance == "affirmative"):
             if "{rebuttals}" in argument_response["text"]:
-                rebuttal_text = await build_rebuttals_for(transcript_so_far, role, stance, student_stance, team_lines, team_id, motion_id)
+                rebuttal_text = await build_rebuttals_for(transcript_so_far, role, stance, student_stance, team_lines)
                 combined_text = argument_response["text"].replace("{rebuttals}", rebuttal_text)
             else:   
                 combined_text = argument_response["text"]
+            combined_text = combined_text.replace("{rebuttals}", " ").strip()
         
         
         
@@ -91,14 +107,12 @@ async def generate_after_context(student_stance, student_role, student_speech, t
         transcript_so_far = format_transcript(speeches)
         yield speech
         
-async def build_arguments_for(role, stance, student_stance, team_lines, team_id, motion_id, need_rebuttals=True):
+async def build_arguments_for(role, stance, student_stance, team_lines, need_rebuttals=True):
     start = time.perf_counter()
     logger.info("build_arguments_for start role=%s stance=%s", role, stance)
     mode, team_line = get_mode_and_team_line(stance, student_stance, team_lines)
-    results = retrieve_relevant_chunks(query_text=team_line, team_id=team_id, motion_id=motion_id, n_results=3)
-    chunks = results["documents"][0]
+    
     response = await run_arguments_crew(
-        retrieved_chunks=chunks,
         team_line=team_line,
         speaker_role=role,
         stance=stance,
@@ -109,15 +123,13 @@ async def build_arguments_for(role, stance, student_stance, team_lines, team_id,
     logger.info("build_arguments_for done role=%s stance=%s elapsed=%.2fs", role, stance, elapsed)
     return {"stance": stance, "speaker_role": role, "text": response.raw}
 
-async def build_rebuttals_for(speech_so_far, role, stance, student_stance, team_lines, team_id, motion_id):
+async def build_rebuttals_for(speech_so_far, role, stance, student_stance, team_lines):
     start = time.perf_counter()
     logger.info("build_rebuttals_for start role=%s stance=%s", role, stance)
     mode, team_line = get_mode_and_team_line(stance, student_stance, team_lines)
-    results = retrieve_relevant_chunks(query_text=speech_so_far, team_id=team_id, motion_id=motion_id, n_results=3)
-    chunks = results["documents"][0]
+
     response = await run_rebuttals_crew(
         speech_so_far=speech_so_far,
-        retrieved_chunks=chunks,
         team_line=team_line,
         speaker_role=role,
         stance=stance,
@@ -127,9 +139,9 @@ async def build_rebuttals_for(speech_so_far, role, stance, student_stance, team_
     logger.info("build_rebuttals_for done role=%s stance=%s elapsed=%.2fs", role, stance, elapsed)
     return response.raw
 
-async def render_mode_3(student_stance, student_role, team_lines, team_id, motion_id):
+async def render_mode_3(student_stance, student_role, team_lines):
     before_speeches = []
-    async for speech in generate_before_context(student_stance=student_stance, student_role=student_role, team_lines=team_lines, team_id=team_id, motion_id=motion_id):
+    async for speech in generate_before_context(student_stance=student_stance, student_role=student_role, team_lines=team_lines):
         avatar = "🥷" if speech["stance"] != student_stance else "🧑‍🎓"
         st.chat_message(ROLE_LABELS[(speech["speaker_role"], speech["stance"])], avatar=avatar).write(speech["text"])
         before_speeches.append(speech)
@@ -143,13 +155,6 @@ async def render_mode_3(student_stance, student_role, team_lines, team_id, motio
     if student_speech:
         st.chat_message(ROLE_LABELS[(student_role, student_stance)], avatar="👤").write(student_speech)
         
-        results = retrieve_relevant_chunks(
-                query_text=student_speech,
-                team_id=team_id,
-                motion_id=motion_id,
-                n_results=3
-            )
-        chunks = results["documents"][0]
         
         # after_speeches = list(generate_after_context(
         #     student_stance=student_stance,
@@ -170,8 +175,6 @@ async def render_mode_3(student_stance, student_role, team_lines, team_id, motio
             student_speech=student_speech,
             team_lines=team_lines,
             previous_speeches=before_speeches,
-            team_id=team_id,
-            motion_id=motion_id
         ):
             avatar = "🥷" if speech["stance"] != student_stance else "🧑‍🎓"
             st.chat_message(ROLE_LABELS[(speech["speaker_role"], speech["stance"])], avatar=avatar).write(speech["text"])
@@ -181,8 +184,7 @@ async def render_mode_3(student_stance, student_role, team_lines, team_id, motio
                     student_speech=student_speech,
                     speaker_role=student_role,
                     stance=student_stance,
-                    team_line=team_lines.get(student_stance),
-                    retrieved_chunks=chunks
+                    team_line=team_lines.get(student_stance)
                     )
             
         with st.chat_message("judge", avatar="🧑‍⚖️"):

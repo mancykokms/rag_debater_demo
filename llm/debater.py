@@ -116,7 +116,7 @@ def generate_team_line(stance, motion_text):
                 "role": "system",
                 "content": (
                     "You are a debate coach. Generate a concise, clear, and "
-                    "persuasive team line for the opposite stance. The team line "
+                    "persuasive team line for the GIVEN stance. The team line "
                     "should be 1-2 sentences long and capture the essence of "
                     "the team's position."
                 ),

@@ -24,6 +24,7 @@ if st.button("Start Debate"):
             "negative" if stance == "affirmative" else "affirmative", motion_text
         )
     }
+    st.write("DEBUG team_lines:", st.session_state.team_lines)  # temporary
 
 if st.session_state.get("debate_started"):
-    asyncio.run(render_mode_3(stance, speaker_role, st.session_state.team_lines, TEAM_ID, MOTION_ID))
+    asyncio.run(render_mode_3(stance, speaker_role, st.session_state.team_lines))
