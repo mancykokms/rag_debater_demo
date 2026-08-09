@@ -87,6 +87,13 @@ async def run_arguments_crew(team_line, speaker_role, stance, mode, need_rebutta
         expected_output=f"A complete speech opening (greeting + arguments), including the literal {{rebuttals}} placeholder if instructed, keep it under {word_limit}",
         agent=agent
     )
+    
+    # ==== Debug String ====
+    # if speaker_role == 3 and stance == "negative":
+    #     print("=== FULL TASK DESCRIPTION FOR 3RD NEGATIVE ===")
+    #     print(task.description)
+    #     print("=== LENGTH:", len(task.description), "characters ===")
+    
     crew = Crew(agents=[agent], tasks=[task])
     result = await crew.akickoff()
     return result
@@ -160,9 +167,10 @@ async def run_judge_crew(student_speech, speaker_role, stance, team_line):
         agent=agent
     )
     crew = Crew(agents=[agent], tasks=[task])
-    result = await crew.akickoff()
-    raw_text = result.raw
+    
     try:
+        result = await crew.akickoff()
+        raw_text = result.raw
         parsed = json.loads(raw_text)
         return parsed
     except Exception as e:
