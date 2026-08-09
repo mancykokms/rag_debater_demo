@@ -7,6 +7,7 @@ from crew.agents import run_arguments_crew, run_judge_crew, run_rebuttals_crew
 from llm.debater import format_transcript, generate_team_line
 from rag.retrieve import retrieve_relevant_chunks
 from llm.debater import ROLE_LABELS
+from utils.diff import safe_display
 import streamlit as st
 
 logging.basicConfig(level=logging.INFO)
@@ -143,7 +144,7 @@ async def render_mode_3(student_stance, student_role, team_lines):
     before_speeches = []
     async for speech in generate_before_context(student_stance=student_stance, student_role=student_role, team_lines=team_lines):
         avatar = "🥷" if speech["stance"] != student_stance else "🧑‍🎓"
-        st.chat_message(ROLE_LABELS[(speech["speaker_role"], speech["stance"])], avatar=avatar).write(speech["text"])
+        st.chat_message(ROLE_LABELS[(speech["speaker_role"], speech["stance"])], avatar=avatar).write(safe_display(speech["text"]))
         before_speeches.append(speech)
 
 
@@ -153,7 +154,7 @@ async def render_mode_3(student_stance, student_role, team_lines):
         
     student_speech = st.chat_input("Write your speech")
     if student_speech:
-        st.chat_message(ROLE_LABELS[(student_role, student_stance)], avatar="👤").write(student_speech)
+        st.chat_message(ROLE_LABELS[(student_role, student_stance)], avatar="👤").write(safe_display(student_speech))
         
         
         # after_speeches = list(generate_after_context(
@@ -166,7 +167,8 @@ async def render_mode_3(student_stance, student_role, team_lines):
         
         # for speech in after_speeches:
         #     avatar = "🥷" if speech["stance"] != student_stance else "🧑‍🎓"
-        #     st.chat_message(ROLE_LABELS[(speech["speaker_role"], speech["stance"])], avatar=avatar).write(speech["text"])
+        #     st.chat_message(ROLE_LABELS[(speech["speaker_role"], speech["stance"])], avatar=avatar)
+        # (speech["text"])
         
         after_speeches = []
         async for speech in generate_after_context(
@@ -177,7 +179,7 @@ async def render_mode_3(student_stance, student_role, team_lines):
             previous_speeches=before_speeches,
         ):
             avatar = "🥷" if speech["stance"] != student_stance else "🧑‍🎓"
-            st.chat_message(ROLE_LABELS[(speech["speaker_role"], speech["stance"])], avatar=avatar).write(speech["text"])
+            st.chat_message(ROLE_LABELS[(speech["speaker_role"], speech["stance"])], avatar=avatar).write(safe_display(speech["text"]))
             after_speeches.append(speech)
             
         feedback = await run_judge_crew(
@@ -188,17 +190,20 @@ async def render_mode_3(student_stance, student_role, team_lines):
                     )
             
         with st.chat_message("judge", avatar="🧑‍⚖️"):
-            st.markdown(f"**Summary:** {feedback['summary_feedback']}")
-            st.markdown("**Scores:**")
-            score_cols = st.columns(3)
-            for i, (category, score) in enumerate(feedback['role_specific_score'].items()):
-                with score_cols[i % 3]:
-                    st.metric(category.replace('_', ' ').title(), f"{score}/10")
-            if feedback.get('unaddressed_points'):
-                st.markdown("**Unaddressed points:**")
-                for point in feedback['unaddressed_points']:
-                    st.markdown(f"- {point}")
-            
+            if "error" in feedback:
+                st.error(f"Judge feedback couldn't be parsed. Raw response: {feedback['raw_text']}")
+            else:
+                st.markdown(f"**Summary:** {feedback['summary_feedback']}")
+                st.markdown("**Scores:**")
+                score_cols = st.columns(3)
+                for i, (category, score) in enumerate(feedback['role_specific_score'].items()):
+                    with score_cols[i % 3]:
+                        st.metric(category.replace('_', ' ').title(), f"{score}/10")
+                if feedback.get('unaddressed_points'):
+                    st.markdown("**Unaddressed points:**")
+                    for point in feedback['unaddressed_points']:
+                        st.markdown(f"- {point}")
+                
             
         
             

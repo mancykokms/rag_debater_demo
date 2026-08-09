@@ -17,14 +17,17 @@ MOTION_ID = "esports_schools_demo"  # a stable, unique string for THIS motion â€
 TEAM_ID = "demo_team"
 
 if st.button("Start Debate"):
-    st.session_state.debate_started = True
-    st.session_state.team_lines = {
-        stance: team_line,
-        ("negative" if stance == "affirmative" else "affirmative"): generate_team_line(
-            "negative" if stance == "affirmative" else "affirmative", motion_text
-        )
-    }
-    st.write("DEBUG team_lines:", st.session_state.team_lines)  # temporary
+    if not team_line.strip():
+        st.warning("Please enter your teamline before starting. ")
+    else:
+        st.session_state.debate_started = True
+        st.session_state.team_lines = {
+            stance: team_line,
+            ("negative" if stance == "affirmative" else "affirmative"): generate_team_line(
+                "negative" if stance == "affirmative" else "affirmative", motion_text
+            )
+        }
+        st.write("DEBUG team_lines:", st.session_state.team_lines)  # temporary
 
 if st.session_state.get("debate_started"):
     asyncio.run(render_mode_3(stance, speaker_role, st.session_state.team_lines))
