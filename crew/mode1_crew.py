@@ -37,7 +37,7 @@ for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
         
-student_speech = st.chat_input("Write your speech")
+student_speech = st.chat_input("Write your speech", key="mode1_chat_input")
 
 if student_speech:
     st.session_state.messages.append({"role": "user", "content": student_speech})

@@ -152,7 +152,7 @@ async def render_mode_3(student_stance, student_role, team_lines):
     #     avatar = "🥷" if speech["stance"] != student_stance else "🧑‍🎓"
     #     st.chat_message(ROLE_LABELS[(speech["speaker_role"], speech["stance"])], avatar=avatar).write(speech["text"])
         
-    student_speech = st.chat_input("Write your speech")
+    student_speech = st.chat_input("Write your speech", key="mode2_chat_input")
     if student_speech:
         st.chat_message(ROLE_LABELS[(student_role, student_stance)], avatar="👤").write(safe_display(student_speech))
         
