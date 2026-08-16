@@ -190,7 +190,7 @@ def graph_initiation():
     return graph.compile(checkpointer=checkpointer)
 
 def mode3_render():
-    st.header("Mode 3 (Langgraph) - Demo")
+    st.subheader("Mode 3 (Langgraph) - Demo")
     motion_text = st.text_input("Enter the motion", key="mode3_motion")
     stance = st.selectbox("Pick your stance", options=["affirmative", "negative"], key="mode3_stance")
     team_line = st.text_input("Enter your team line", key="mode3_team_line")

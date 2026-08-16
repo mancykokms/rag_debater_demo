@@ -1,16 +1,19 @@
 import streamlit as st
+from crew.mode1_crew import render_mode1
 from crew.mode2_crew import render_mode_3
 from llm.debater import generate_team_line
 from graph.mode3_graph import mode3_render
 import uuid
 import asyncio
 
-
+st.title("AI Debate Sparring Partner")
 t1, t2, t3 = st.tabs(["Mode 1", "Mode 2", "Mode 3"])
 
+with t1:
+    asyncio.run(render_mode1())
 with t2: 
 
-    st.title("AI Debate Sparring Partner — Mode 2 Demo")
+    st.subheader("AI Debate Sparring Partner — Mode 2 Demo")
 
     motion_text = st.text_input("Enter the motion")
 
@@ -32,7 +35,7 @@ with t2:
                     "negative" if stance == "affirmative" else "affirmative", motion_text
                 )
             }
-            st.write("DEBUG team_lines:", st.session_state.team_lines)  # temporary
+            # st.write("DEBUG team_lines:", st.session_state.team_lines)  # temporary
 
     if st.session_state.get("debate_started"):
         asyncio.run(render_mode_3(stance, speaker_role, st.session_state.team_lines))
