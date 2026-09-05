@@ -25,7 +25,7 @@ class DebateState(TypedDict):
 
 # custom_client = httpx.Client(verify=True)
 llm = ChatOpenAI(
-    model="sensenova-6.7-flash-lite",
+    model="sensenova-6.8-flash-lite",
     base_url="https://token.sensenova.cn/v1",
     api_key=st.secrets["sensenova"]["api_key"],
     max_tokens=600,
@@ -34,7 +34,7 @@ llm = ChatOpenAI(
 )
 
 judge_llm = ChatOpenAI(
-    model="sensenova-6.7-flash-lite",
+    model="sensenova-6.8-flash-lite",
     base_url="https://token.sensenova.cn/v1",
     api_key=st.secrets["sensenova"]["api_key"],
     max_tokens=1500,
@@ -190,7 +190,7 @@ def graph_initiation():
     return graph.compile(checkpointer=checkpointer)
 
 def mode3_render():
-    st.header("Mode 3 (Langgraph) - Demo")
+    st.subheader("Mode 3 (Langgraph) - Demo")
     motion_text = st.text_input("Enter the motion", key="mode3_motion")
     stance = st.selectbox("Pick your stance", options=["affirmative", "negative"], key="mode3_stance")
     team_line = st.text_input("Enter your team line", key="mode3_team_line")
