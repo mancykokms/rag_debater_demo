@@ -4,7 +4,7 @@ from llm.debater import build_system_prompt, generate_debater_response
 from llm.judge import build_judge_prompt, generate_judge_response
 import json
 # llm = LLM(
-#     model="sensenova-6.7-flash-lite",
+#     model="sensenova-6.8-flash-lite",
 #     base_url="https://token.sensenova.cn/v1",
 #     api_key=st.secrets["sensenova"]["api_key"],
 # )
@@ -30,7 +30,7 @@ import json
 
 def run_debater_crew(student_speech, retrieved_chunks, team_line, speaker_role, stance, mode):
     llm = LLM(
-    model="sensenova-6.7-flash-lite",
+    model="sensenova-6.8-flash-lite",
     base_url="https://token.sensenova.cn/v1",
     api_key=st.secrets["sensenova"]["api_key"],
     )
@@ -52,7 +52,7 @@ def run_debater_crew(student_speech, retrieved_chunks, team_line, speaker_role, 
 
 def run_judge_crew(student_speech, speaker_role, stance, team_line, retrieved_chunks):
     llm = LLM(
-        model="sensenova-6.7-flash-lite",
+        model="sensenova-6.8-flash-lite",
         base_url="https://token.sensenova.cn/v1",
         api_key=st.secrets["sensenova"]["api_key"],
         )

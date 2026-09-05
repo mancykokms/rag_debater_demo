@@ -1,5 +1,5 @@
 import streamlit as st
-from crew.mode1_crew import render_mode1
+from pydantic_ai_mode.provider import mode1_render
 from crew.mode2_crew import render_mode_3
 from llm.debater import generate_team_line
 from graph.mode3_graph import mode3_render
@@ -10,7 +10,7 @@ st.title("AI Debate Sparring Partner")
 t1, t2, t3 = st.tabs(["Mode 1", "Mode 2", "Mode 3"])
 
 with t1:
-    asyncio.run(render_mode1())
+    mode1_render()
 with t2: 
 
     st.subheader("AI Debate Sparring Partner — Mode 2 Demo")

@@ -8,7 +8,7 @@
 #     base_url="https://token.sensenova.cn/v1",
 #     api_key=st.secrets["sensenova"]["api_key"],
 # )
-# model = OpenAIChatModel("sensenova-6.7-flash-lite", provider=provider)
+# model = OpenAIChatModel("sensenova-6.8-flash-lite", provider=provider)
 # agent = Agent(model)
 
 # result = asyncio.run(agent.run("Write a 150-word argument for why school libraries are important."))
@@ -25,7 +25,7 @@ provider = OpenAIProvider(
     base_url="https://token.sensenova.cn/v1",
     api_key=st.secrets["sensenova"]["api_key"],
 )
-model = OpenAIChatModel("sensenova-6.7-flash-lite", provider=provider)
+model = OpenAIChatModel("sensenova-6.8-flash-lite", provider=provider)
 agent = Agent(model)
 
 @agent.tool_plain

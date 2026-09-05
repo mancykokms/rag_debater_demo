@@ -74,7 +74,7 @@ def generate_judge_response(student_speech, speaker_role, stance, team_line, ret
     evidence = "\n\n".join(retrieved_chunks)
     user_message = f"The team's case line:\n{team_line}\n\nEvidence:\n{evidence}\n\nStudent's speech to judge:\n{student_speech}"
     response = client.chat.completions.create(
-            model="sensenova-6.7-flash-lite",
+            model="sensenova-6.8-flash-lite",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}

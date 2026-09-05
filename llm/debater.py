@@ -110,7 +110,7 @@ def format_transcript(speeches):
 
 def generate_team_line(stance, motion_text):
     response = client.chat.completions.create(
-        model="sensenova-6.7-flash-lite",
+        model="sensenova-6.8-flash-lite",
         messages=[
             {
                 "role": "system",
@@ -132,7 +132,7 @@ def generate_debater_response(student_speech, retrieved_chunks, team_line, speak
     user_message = f"Your team's case line:\n{team_line}\n\nEvidence:\n{evidence}\n\nStudent's speech to respond to:\n{student_speech}"
     
     response = client.chat.completions.create(
-        model="sensenova-6.7-flash-lite",
+        model="sensenova-6.8-flash-lite",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_message}

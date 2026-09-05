@@ -9,7 +9,7 @@
 # # client = OpenAI(base_url="https://token.sensenova.cn/v1", api_key=st.secrets["sensenova"]["api_key"])
 # # start = time.time()
 # # response = client.chat.completions.create(
-# #     model="sensenova-6.7-flash-lite",
+# #     model="sensenova-6.8-flash-lite",
 # #     messages=[{"role": "user", "content": test_prompt}],
 # #     max_tokens=1000,
 # #     reasoning_effort="none",
@@ -17,7 +17,7 @@
 # # print("RAW CLIENT:", response.usage, f"{time.time()-start:.1f}s")
 
 # # # CrewAI test
-# # llm = LLM(model="openai/sensenova-6.7-flash-lite", base_url="https://token.sensenova.cn/v1", api_key=st.secrets["sensenova"]["api_key"], max_tokens=1000, reasoning_effort="none")
+# # llm = LLM(model="openai/sensenova-6.8-flash-lite", base_url="https://token.sensenova.cn/v1", api_key=st.secrets["sensenova"]["api_key"], max_tokens=1000, reasoning_effort="none")
 # # agent = Agent(role="Writer", goal="Write arguments", backstory="You write concise arguments.", llm=llm)
 # # task = Task(description=test_prompt, expected_output="A 150-word argument", agent=agent)
 # # crew = Crew(agents=[agent], tasks=[task])
@@ -39,7 +39,7 @@
 
 # # for name, prompt in [("SIMPLE", simple_prompt), ("PLACEHOLDER", placeholder_prompt)]:
 # #     response = client.chat.completions.create(
-# #         model="sensenova-6.7-flash-lite",
+# #         model="sensenova-6.8-flash-lite",
 # #         messages=[{"role": "user", "content": prompt}],
 # #         max_tokens=2000,
 # #         reasoning_effort="none",
@@ -89,7 +89,7 @@
 # client = OpenAI(base_url="https://token.sensenova.cn/v1", api_key=st.secrets["sensenova"]["api_key"])
 
 # response = client.chat.completions.create(
-#     model="sensenova-6.7-flash-lite",
+#     model="sensenova-6.8-flash-lite",
 #     messages=[{"role": "user", "content": "What's the weather in Tokyo?"}],
 #     tools=[{
 #         "type": "function",

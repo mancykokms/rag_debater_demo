@@ -13,7 +13,7 @@ import streamlit as st
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 FULL_ROUND_SEQUENCE = [
-    (1, "affirmative"), 
+    (1, "affirmative"),
     (1, "negative"),
     (2, "affirmative"),
     (2, "negative"),
@@ -24,34 +24,34 @@ def get_mode_and_team_line(stance, student_stance, team_lines):
     mode = "teammate" if stance == student_stance else "opponent"
     team_line = team_lines.get(stance)
     return mode, team_line
-    
+
 
 async def generate_before_context(student_stance, student_role, team_lines):
     student_role = (student_role, student_stance)
     student_idx = FULL_ROUND_SEQUENCE.index(student_role)
     before_student_list = FULL_ROUND_SEQUENCE[:student_idx]
-    
+
     # argument_positions = [(role, stance) for (role, stance) in before_student_list]
     # argument_tasks = {
     #     (role, stance): asyncio.create_task(build_arguments_for(role, stance, student_stance, team_lines, need_rebuttals=not (role == 1 and stance == "affirmative"), team_id=team_id, motion_id=motion_id)) for (role, stance) in before_student_list
     # }
-    
+
     argument_results = await asyncio.gather(*[
         build_arguments_for(
             role, stance, student_stance, team_lines,
             need_rebuttals=not(role == 1 and stance == "affirmative")
         ) for (role, stance) in before_student_list
     ])
-    
+
     argument_map = dict(zip(before_student_list, argument_results))
     speeches = []
     transcript_so_far = ""
-    
+
     for (role, stance) in before_student_list:
-        
+
         argument_response = argument_map[(role, stance)]
-        
-        # build arguments in parallel   
+
+        # build arguments in parallel
         if not (role == 1 and stance == "affirmative"):
             if "{rebuttals}" in argument_response["text"]:
                 combined_text = argument_response["text"].replace("{rebuttals}", await build_rebuttals_for(transcript_so_far, role, stance, student_stance, team_lines))
@@ -60,59 +60,59 @@ async def generate_before_context(student_stance, student_role, team_lines):
         else:
             combined_text = argument_response["text"]
         combined_text = combined_text.replace("{rebuttals}", " ").strip()
-       
-        
+
+
         speech = {"stance": stance, "speaker_role": role, "text": combined_text}
         speeches.append(speech)
         transcript_so_far = format_transcript(speeches)
         yield speech
-        
+
 
 async def generate_after_context(student_stance, student_role, student_speech, team_lines, previous_speeches):
     student_role = (student_role, student_stance)
     student_idx = FULL_ROUND_SEQUENCE.index(student_role)
     after_student_list = FULL_ROUND_SEQUENCE[student_idx + 1:]
-    
+
     student_entry = [{"stance": student_stance, "speaker_role": student_role[0], "text": student_speech}]
     speeches = previous_speeches + student_entry
     transcript_so_far = format_transcript(speeches)
     # argument_tasks = {
     #         (role, stance): asyncio.create_task(build_arguments_for(role, stance, student_stance, team_lines, need_rebuttals=not (role == 1 and stance == "affirmative"), team_id=team_id, motion_id=motion_id)) for (role, stance) in after_student_list
     #     }
-    
+
     argument_results = await asyncio.gather(*[
         build_arguments_for(role, stance, student_stance, team_lines,
                             need_rebuttals=not(role == 1 and stance == "affirmative"))
         for (role, stance) in after_student_list
     ])
     argument_map = dict(zip(after_student_list, argument_results))
-    
+
     for (role, stance) in after_student_list:
         # if (role, stance) in argument_tasks:
         #     argument_response = await argument_tasks[(role, stance)]
-        
+
         argument_response = argument_map[(role, stance)]
-            
+
         if not (role == 1 and stance == "affirmative"):
             if "{rebuttals}" in argument_response["text"]:
                 rebuttal_text = await build_rebuttals_for(transcript_so_far, role, stance, student_stance, team_lines)
                 combined_text = argument_response["text"].replace("{rebuttals}", rebuttal_text)
-            else:   
+            else:
                 combined_text = argument_response["text"]
             combined_text = combined_text.replace("{rebuttals}", " ").strip()
-        
-        
-        
+
+
+
         speech = {"stance": stance, "speaker_role": role, "text": combined_text}
         speeches.append(speech)
         transcript_so_far = format_transcript(speeches)
         yield speech
-        
+
 async def build_arguments_for(role, stance, student_stance, team_lines, need_rebuttals=True):
     start = time.perf_counter()
     logger.info("build_arguments_for start role=%s stance=%s", role, stance)
     mode, team_line = get_mode_and_team_line(stance, student_stance, team_lines)
-    
+
     response = await run_arguments_crew(
         team_line=team_line,
         speaker_role=role,
@@ -151,12 +151,12 @@ async def render_mode_3(student_stance, student_role, team_lines):
     # for speech in before_speeches:
     #     avatar = "🥷" if speech["stance"] != student_stance else "🧑‍🎓"
     #     st.chat_message(ROLE_LABELS[(speech["speaker_role"], speech["stance"])], avatar=avatar).write(speech["text"])
-        
+
     student_speech = st.chat_input("Write your speech", key="mode2_chat_input")
     if student_speech:
         st.chat_message(ROLE_LABELS[(student_role, student_stance)], avatar="👤").write(safe_display(student_speech))
-        
-        
+
+
         # after_speeches = list(generate_after_context(
         #     student_stance=student_stance,
         #     student_role=student_role,
@@ -164,12 +164,12 @@ async def render_mode_3(student_stance, student_role, team_lines):
         #     team_lines=team_lines,
         #     previous_speeches=before_speeches
         # ))
-        
+
         # for speech in after_speeches:
         #     avatar = "🥷" if speech["stance"] != student_stance else "🧑‍🎓"
         #     st.chat_message(ROLE_LABELS[(speech["speaker_role"], speech["stance"])], avatar=avatar)
         # (speech["text"])
-        
+
         after_speeches = []
         async for speech in generate_after_context(
             student_stance=student_stance,
@@ -181,14 +181,14 @@ async def render_mode_3(student_stance, student_role, team_lines):
             avatar = "🥷" if speech["stance"] != student_stance else "🧑‍🎓"
             st.chat_message(ROLE_LABELS[(speech["speaker_role"], speech["stance"])], avatar=avatar).write(safe_display(speech["text"]))
             after_speeches.append(speech)
-            
+
         feedback = await run_judge_crew(
                     student_speech=student_speech,
                     speaker_role=student_role,
                     stance=student_stance,
                     team_line=team_lines.get(student_stance)
                     )
-            
+
         with st.chat_message("judge", avatar="🧑‍⚖️"):
             if "error" in feedback:
                 st.error(f"Judge feedback couldn't be parsed. Raw response: {feedback['raw_text']}")
@@ -203,21 +203,21 @@ async def render_mode_3(student_stance, student_role, team_lines):
                     st.markdown("**Unaddressed points:**")
                     for point in feedback['unaddressed_points']:
                         st.markdown(f"- {point}")
-                
-            
-        
-            
-    
-    
-        
-        
+
+
+
+
+
+
+
+
 
 # if __name__ == "__main__":
 #     team_lines = {
 #         "affirmative": "We support banning single-use plastics because they cause irreversible environmental harm.",
 #         "negative": "We oppose banning single-use plastics because it burdens low-income households."
 #     }
-    
+
 #     for speech in generate_before_context(student_stance="negative", student_role=2, team_lines=team_lines):
 #         print(f"{speech['stance']} {speech['speaker_role']}: {speech['text'][:100]}...")
 
@@ -226,11 +226,11 @@ if __name__ == "__main__":
         "affirmative": "We support banning single-use plastics because they cause irreversible environmental harm.",
         "negative": "We oppose banning single-use plastics because it burdens low-income households."
     }
-    
+
     before_speeches = list(generate_before_context(student_stance="negative", student_role=2, team_lines=team_lines))
-    
+
     student_speech = "We believe the ban is necessary because plastic pollution is an urgent environmental crisis."
-    
+
     for speech in generate_after_context(
         student_stance="negative",
         student_role=2,

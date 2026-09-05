@@ -25,7 +25,7 @@ class DebateState(TypedDict):
 
 # custom_client = httpx.Client(verify=True)
 llm = ChatOpenAI(
-    model="sensenova-6.7-flash-lite",
+    model="sensenova-6.8-flash-lite",
     base_url="https://token.sensenova.cn/v1",
     api_key=st.secrets["sensenova"]["api_key"],
     max_tokens=600,
@@ -34,7 +34,7 @@ llm = ChatOpenAI(
 )
 
 judge_llm = ChatOpenAI(
-    model="sensenova-6.7-flash-lite",
+    model="sensenova-6.8-flash-lite",
     base_url="https://token.sensenova.cn/v1",
     api_key=st.secrets["sensenova"]["api_key"],
     max_tokens=1500,
