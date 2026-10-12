@@ -1,5 +1,7 @@
 # AI Debate Sparring Partner
 
+**Live demo:** [ragdebaterdemo-fkcasrnhbifgia5ffvh4e5.streamlit.app](https://ragdebaterdemo-fkcasrnhbifgia5ffvh4e5.streamlit.app/)
+
 A Streamlit app that lets a student practice competitive debate speeches against an AI opponent, then get scored by an AI judge. The same debate mechanic — write a speech, get an AI rebuttal grounded in live web search, get judged on role-specific criteria — is implemented three separate times, once on each of three different agent orchestration frameworks, as a comparison/portfolio piece.
 
 ## Modes
